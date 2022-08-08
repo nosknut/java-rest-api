@@ -3,9 +3,23 @@
  */
 package com.nosknut.javarestapi;
 
+import okhttp3.Response;
+
 public class App {
     public static void main(String[] args) throws Exception {
         RestApi.init();
+
+        RestClient.postByteString("http://localhost:7070/files?filePath=testFiles/testPost.dat",
+                FileUtils.readFileToByteString("testFiles/test.dat")).close();
+
+        RestClient.postByteString("http://localhost:7070/files?filePath=testFiles/json.json",
+                FileUtils.encodeString("{\"field\": \"value\"}")).close();
+
+        try (Response response = RestClient.get("http://localhost:7070/files?filePath=testFiles/json.json")) {
+            String body = response.body().string();
+            FileUtils.writeByteStringToFile("testFiles/getJson.json", body);
+        }
+
         while (true) {
             Thread.sleep(1000);
         }

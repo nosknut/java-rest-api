@@ -1,6 +1,8 @@
 package com.nosknut.javarestapi;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -69,6 +71,39 @@ public class RestApi {
         server.addHandler("/ping", (req, res) -> {
             res.setBody("Pong!", "text/plain");
             res.setStatusCode(200);
+        }, authenticator);
+
+        server.addHandler("/files", (req, res) -> {
+            String path = req.getQueryParameter("filePath");
+
+            // https://stackoverflow.com/questions/423376/how-to-get-the-file-name-from-a-full-path-using-javascript
+            try {
+                switch (req.getMethod()) {
+                    case "GET": {
+                        res.setBody(FileUtils.readFileToByteString(path), "application/octet-stream");
+                        // Formality that allows browsers to download the file using the correct name
+                        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+                        String fileName = Paths.get(path).getFileName().toString();
+                        res.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+                        res.setStatusCode(200);
+                        break;
+                    }
+                    case "POST": {
+                        FileUtils.writeByteStringToFile(path, req.getBody());
+                        res.setStatusCode(200);
+                        break;
+                    }
+                    default:
+                        res.failRequest(405, "Method Not Allowed");
+                        break;
+                }
+            } catch (NoSuchFileException e) {
+                res.failRequest(404, "File not found");
+                throw e;
+            } catch (IOException e) {
+                res.failRequest(500, "Internal Server Error");
+                throw e;
+            }
         }, authenticator);
 
         int port = 7070;

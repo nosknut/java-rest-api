@@ -29,6 +29,9 @@ dependencies {
     
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+
+    // https://search.maven.org/artifact/com.squareup.okhttp3/okhttp/4.10.0/jar
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 }
 
 application {
