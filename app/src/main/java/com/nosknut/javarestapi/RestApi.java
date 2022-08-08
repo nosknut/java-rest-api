@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nosknut.javarestapi.embedhttp.EmbeddedHttpServer;
+import com.nosknut.javarestapi.pojos.ParentObject;
 import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -49,6 +50,31 @@ public class RestApi {
             response.put("receivedValue", value);
 
             res.setBody(response);
+
+            res.setStatusCode(200);
+        }, authenticator);
+
+        server.addHandler("/post/parse-json", (req, res) -> {
+            ObjectNode body = req.getBodyAsJson();
+            String bodyString = req.getBody();
+            
+            ParentObject deserialized = req.objectMapper.treeToValue(body, ParentObject.class);
+            ParentObject deserializedFromString = req.objectMapper.readValue(bodyString, ParentObject.class);
+
+            System.out.println("From parsed ObjectNode");
+            System.out.println(body);
+            System.out.println(deserialized.childObject.value);
+            System.out.println(deserialized.childObject.value2);
+            System.out.println(deserialized.nullableChildObject);
+
+            System.out.println("From raw json string");
+            System.out.println(bodyString);
+            System.out.println(deserializedFromString.childObject.value);
+            System.out.println(deserializedFromString.childObject.value2);
+            System.out.println(deserializedFromString.nullableChildObject);
+
+            String serialized = req.objectMapper.writeValueAsString(deserialized);
+            res.setBody(serialized, "application/json");
 
             res.setStatusCode(200);
         }, authenticator);

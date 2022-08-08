@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class HttpRequest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    public final ObjectMapper objectMapper = new ObjectMapper();
     private final String method;
     private final URI uri;
     private final Map<String, String> queryParameters;
