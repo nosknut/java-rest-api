@@ -7,12 +7,13 @@ import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nosknut.javarestapi.embedhttp.EmbeddedHttpServer;
+import com.nosknut.javarestapi.embedhttp.JsonUtils;
 import com.nosknut.javarestapi.pojos.ParentObject;
 import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.HttpExchange;
 
 public class RestApi {
-    
+
     public static ArrayList<String> whitelistedIps() {
         ArrayList<String> ips = new ArrayList<>();
         ips.add("127.0.0.1");
@@ -22,11 +23,11 @@ public class RestApi {
     public static class ApiIpWhitelistAuthentication extends Authenticator {
 
         @Override
-        public Result authenticate (HttpExchange exch) {
+        public Result authenticate(HttpExchange exch) {
             // TODO: Make sure this is the correct value
             String hostAddress = exch.getRemoteAddress().getAddress().getHostAddress();
             if (!whitelistedIps().contains(hostAddress)) {
-                    return new Authenticator.Failure(401);
+                return new Authenticator.Failure(401);
             }
             return new Authenticator.Success(exch.getPrincipal());
         }
@@ -43,23 +44,23 @@ public class RestApi {
         }, authenticator);
 
         server.addHandler("/post/json", (req, res) -> {
-            ObjectNode body = req.getBodyAsJson();
-            ObjectNode response = res.createJsonBody();
+            ObjectNode body = JsonUtils.deserializeJson(req.getBody());
+            ObjectNode response = JsonUtils.createJsonObject();
 
             String value = body.get("value").asText();
             response.put("receivedValue", value);
 
-            res.setBody(response);
+            res.setBody(JsonUtils.serializeJson(response), "application/json");
 
             res.setStatusCode(200);
         }, authenticator);
 
         server.addHandler("/post/parse-json", (req, res) -> {
-            ObjectNode body = req.getBodyAsJson();
             String bodyString = req.getBody();
-            
-            ParentObject deserialized = req.objectMapper.treeToValue(body, ParentObject.class);
-            ParentObject deserializedFromString = req.objectMapper.readValue(bodyString, ParentObject.class);
+            ObjectNode body = JsonUtils.deserializeJson(bodyString);
+
+            ParentObject deserialized = JsonUtils.jsonObjectToClass(body, ParentObject.class);
+            ParentObject deserializedFromString = JsonUtils.jsonStringToClass(bodyString, ParentObject.class);
 
             System.out.println("From parsed ObjectNode");
             System.out.println(body);
@@ -73,20 +74,20 @@ public class RestApi {
             System.out.println(deserializedFromString.childObject.value2);
             System.out.println(deserializedFromString.nullableChildObject);
 
-            String serialized = req.objectMapper.writeValueAsString(deserialized);
+            String serialized = JsonUtils.classToJsonString(deserialized);
             res.setBody(serialized, "application/json");
 
             res.setStatusCode(200);
         }, authenticator);
 
         server.addHandler("/get", (req, res) -> {
-            ObjectNode json = res.createJsonBody();
+            ObjectNode json = JsonUtils.createJsonObject();
 
             req.getQueryParameters().forEach((key, value) -> {
                 json.put(key, value);
             });
-            
-            res.setBody(json);
+
+            res.setBody(JsonUtils.serializeJson(json), "application/json");
             res.setStatusCode(200);
         }, authenticator);
 

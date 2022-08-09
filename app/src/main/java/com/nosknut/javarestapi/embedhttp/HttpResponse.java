@@ -2,8 +2,6 @@ package com.nosknut.javarestapi.embedhttp;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.Headers;
 
@@ -13,7 +11,6 @@ import com.sun.net.httpserver.Headers;
  */
 public class HttpResponse {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final int STATUS_CODE_OK = 200;
 
     private int statusCode;
@@ -41,11 +38,11 @@ public class HttpResponse {
 
     public HttpResponse failRequest(int statusCode, String errorMessage) throws IOException {
         setStatusCode(statusCode);
-        
-        ObjectNode json = objectMapper.createObjectNode();
+
+        ObjectNode json = JsonUtils.createJsonObject();
         json.put("message", errorMessage);
-        
-        setBody(json);
+
+        setBody(JsonUtils.serializeJson(json), "application/json");
         return this;
     }
 
@@ -54,7 +51,7 @@ public class HttpResponse {
     }
 
     public HttpResponse addHeader(String name, String value) {
-        if(headers.containsKey(name)) {
+        if (headers.containsKey(name)) {
             throw new IllegalArgumentException("Header already exists: " + name);
         }
         headers.add(name, value);
@@ -77,21 +74,10 @@ public class HttpResponse {
     }
 
     public HttpResponse setContentType(String contentType) {
-        if(contentType == null) {
+        if (contentType == null) {
             throw new IllegalArgumentException("Content type cannot be null");
         }
         addHeader("Content-Type", contentType);
-        return this;
-    }
-
-    // Store this in a variable and pass it to setBody once the object has been populated
-    public ObjectNode createJsonBody() {
-        return objectMapper.createObjectNode();
-    }
-
-    public HttpResponse setBody(JsonNode body) throws IOException {
-        setContentType("application/json");
-        this.body = objectMapper.writeValueAsString(body);
         return this;
     }
 

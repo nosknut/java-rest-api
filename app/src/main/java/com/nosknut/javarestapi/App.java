@@ -3,21 +3,31 @@
  */
 package com.nosknut.javarestapi;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nosknut.javarestapi.embedhttp.JsonUtils;
+
 import okhttp3.Response;
 
 public class App {
     public static void main(String[] args) throws Exception {
         RestApi.init();
 
-        RestClient.postByteString("http://localhost:7070/files?filePath=testFiles/testPost.dat",
-                FileUtils.readFileToByteString("testFiles/test.dat")).close();
+        try (Response response = RestClient.postByteString(
+                "http://localhost:7070/files?filePath=testFiles/testPost.dat",
+                FileUtils.readFileToByteString("testFiles/test.dat"))) {
 
-        RestClient.postByteString("http://localhost:7070/files?filePath=testFiles/json.json",
-                FileUtils.encodeString("{\"field\": \"value\"}")).close();
+        }
+
+        ObjectNode json = JsonUtils.createJsonObject();
+        json.put("field", "value");
+        String body = FileUtils.encodeString(JsonUtils.serializeJson(json));
+        try (Response response = RestClient.postByteString("http://localhost:7070/files?filePath=testFiles/json.json", body)) {
+
+        }
 
         try (Response response = RestClient.get("http://localhost:7070/files?filePath=testFiles/json.json")) {
-            String body = response.body().string();
-            FileUtils.writeByteStringToFile("testFiles/getJson.json", body);
+            String bodyString = response.body().string();
+            FileUtils.writeByteStringToFile("testFiles/getJson.json", bodyString);
         }
 
         while (true) {

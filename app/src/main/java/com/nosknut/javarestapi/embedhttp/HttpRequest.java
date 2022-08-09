@@ -1,11 +1,5 @@
 package com.nosknut.javarestapi.embedhttp;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.net.httpserver.Headers;
-
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -14,13 +8,14 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.sun.net.httpserver.Headers;
+
 // https://github.com/arteam/embedded-http-server/tree/master/src/main/java/com/github/arteam/embedhttp
 /**
  * Represents an HTTP request from an HTTP client
  */
 public class HttpRequest {
-
-    public final ObjectMapper objectMapper = new ObjectMapper();
+    
     private final String method;
     private final URI uri;
     private final Map<String, String> queryParameters;
@@ -73,18 +68,11 @@ public class HttpRequest {
         return body;
     }
 
-    public ObjectNode getBodyAsJson() throws IOException {
-        JsonNode json = objectMapper.readTree(body);
-        if(json.isObject()) {
-            return (ObjectNode) json;
-        } else {
-            throw new IOException("Body is not a JSON object");
-        }
-    }
-
     /**
-     * Gets the query parameters from the request body as a {@link Map}. The query parameters are
-     * URI-encoded, and we should decode them when populating the map. In case we have several
+     * Gets the query parameters from the request body as a {@link Map}. The query
+     * parameters are
+     * URI-encoded, and we should decode them when populating the map. In case we
+     * have several
      * parameters with the same name, the last one wins.
      */
     public Map<String, String> getQueryParametersFromBody() {
@@ -92,8 +80,10 @@ public class HttpRequest {
     }
 
     /**
-     * Gets the query parameters from the provided URI as a {@link Map}. The query parameters are
-     * URI-encoded, and we should decode them when populating the map. In case we have several
+     * Gets the query parameters from the provided URI as a {@link Map}. The query
+     * parameters are
+     * URI-encoded, and we should decode them when populating the map. In case we
+     * have several
      * parameters with the same name, the last one wins.
      */
     private Map<String, String> getQueryParameters(URI uri) {
@@ -106,7 +96,8 @@ public class HttpRequest {
         }
         return Arrays.stream(source.split("&"))
                 .map(s -> s.split("="))
-                .collect(Collectors.toMap(p -> decodeUrlPart(p[0]), p -> decodeUrlPart(p[1]), (first, second) -> second));
+                .collect(Collectors.toMap(p -> decodeUrlPart(p[0]), p -> decodeUrlPart(p[1]),
+                        (first, second) -> second));
     }
 
     private static String decodeUrlPart(String encodedPart) {

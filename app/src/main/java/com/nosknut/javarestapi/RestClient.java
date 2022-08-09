@@ -30,6 +30,7 @@ public class RestClient {
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
+                .header("Content-Type", "application/json")
                 .build();
 
         try {
